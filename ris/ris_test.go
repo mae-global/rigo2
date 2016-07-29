@@ -1,13 +1,32 @@
 package ris
 
 import (
+	"os"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"testing"
 )
 
+var localtest bool /* if !localTest then on CI */
+
+func init() {
+	debug := os.Getenv("RIGO2_DEBUG")
+	if debug == "testing" {
+		localtest = false
+	} else {
+		localtest = true
+	}
+}
+
+
 func Test_RIS(t *testing.T) {
 
 	Convey("RIS test", t, func() {
+		
+		if !localtest {
+			t.Skip()
+		}
+
 		Convey("Load Bxdf", func() {
 
 			bxdf, err := Bxdf("PxrConstant")
