@@ -24,6 +24,7 @@ func (t *testRiContext) Handle(list []RtPointer) {
 	args := make([]RtPointer, 0)
 	params := make([]RtPointer, 0)
 
+	inannotations := false
 	inargs := false
 	inparams := false
 	trigger := -1
@@ -43,7 +44,14 @@ func (t *testRiContext) Handle(list []RtPointer) {
 				inargs = false
 				trigger = i
 				break
+			case string(ANNOTATIONS):
+				inannotations = true
+			break
 			}
+		}
+
+		if inannotations {
+			break /* we don't need the annotations for testing */
 		}
 
 		if trigger == i {
