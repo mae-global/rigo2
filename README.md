@@ -14,6 +14,13 @@ Install with:
 Example usage: 
 
 ```go
+
+import (
+  . "github.com/mae-global/rigo2/ri/core"
+  . "github.com/mae-global/rigo2/ri"
+  "github.com/mae-global/rigo2"
+)
+
 /* create a context to work with */
 ri := rigo.New(&rigo.Configuration{PrettyPrint:true})
 
