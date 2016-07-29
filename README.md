@@ -1,4 +1,4 @@
-#RiGO2  ![version](https://img.shields.io/badge/version-2-red.svg)
+#RiGO2 ![build](https://travis-ci.org/mae-global/rigo2.svg?branch=master) ![version](https://img.shields.io/badge/version-2-red.svg)
 
 Implementation of the RenderMan Interface for the Go programming language. This is currently 
 based on Pixar's RenderMan Specification version 3.2.1 (November 2005). This implementation 
