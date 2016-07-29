@@ -1,0 +1,24 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="lightfilter"/>
+    </shaderType>
+    <param name="coordsys"
+        label="coordsys"
+        type="string"
+        default=""
+        options="coordsys"
+        widget="default">
+        <tags>
+            <tag value="string"/>
+        </tags>
+    </param>
+    <param name="map"
+        label="Map"
+        type="string"
+        default="default.tex"
+        widget="fileInput" options="texture"
+        connectable="False">
+    </param>
+
+    <rfmdata nodeid="101" classification="test/lightfilter"/>
+</args>

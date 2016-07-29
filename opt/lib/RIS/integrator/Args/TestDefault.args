@@ -1,0 +1,5 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="integrator"/>
+    </shaderType>
+</args>
