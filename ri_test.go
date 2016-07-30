@@ -13,8 +13,7 @@ func Test_Examples(t *testing.T) {
 
 	Convey("Unit Cube Example", t, func() {
 
-		ctx := NewContext(&Configuration{PrettyPrint: true})
-		ri := Wrap(ctx)
+		ri := New(nil)
 
 		ri.Begin("out/examples/unitcube.rib")
 		ri.AttributeBegin()
@@ -60,8 +59,7 @@ func Test_Examples(t *testing.T) {
 
 	Convey("Simple Sphere Example", t, func() {
 
-		ctx := NewContext(&Configuration{PrettyPrint: true})
-		ri := Wrap(ctx)
+		ri := New(nil)		
 
 		ri.Begin("out/examples/simplesphere.rib")
 		ri.Display("simplesphere.tiff", "file", "rgba")

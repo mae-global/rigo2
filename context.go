@@ -35,6 +35,7 @@ func DefaultHandleGeneratorHandler(name, typeof string) (string, error) {
 	return name, nil
 }
 
+
 type ErrorHandler func(code, severity int, msg string) error
 
 func AbortErrorHandler(code, severity int, msg string) error {
@@ -52,8 +53,8 @@ func PrintErrorHandler(code, severity int, msg string) error {
 
 /* Configuration */
 type Configuration struct {
+	/* TODO: note all these bools can be replaced with an RiOptions("generator",...) set */
 	Debug       bool /* use debug sequence */
-	PrettyPrint bool /* use the pretty print for RIB output */
 	ReadAhead   bool /* use type readahead */
 	Strict      bool /* use strict checking of types */
 	Fragment    bool /* don't do any automagic stuff */
@@ -308,7 +309,6 @@ func NewContext(config *Configuration) *Context {
 	ctx.dict = make(map[string]string, 0)
 
 	ctx.config.Debug = config.Debug
-	ctx.config.PrettyPrint = config.PrettyPrint
 	ctx.config.ReadAhead = config.ReadAhead
 	ctx.config.Strict = config.Strict
 	ctx.config.Fragment = config.Fragment
@@ -659,8 +659,13 @@ func (ctx *Context) Handle(list []RtPointer) {
 			}
 		}
 
-		options := &DriverOptions{}
-		options.PrettyPrint = ctx.config.PrettyPrint
+		/* take the optionsblock called "rib" and convert to []RtPointer set of token, value, token ... */
+		options := make([]RtPointer,0)
+		block := ctx.options[RtToken("rib")]
+		for param,value := range block {
+			options = append(options,param)
+			options = append(options,value)
+		}		
 
 		if string(statement) != "|" {
 			sargs := make([]string, 0)
@@ -688,102 +693,35 @@ func (ctx *Context) Handle(list []RtPointer) {
 			}
 		}
 
-		switch string(target) {
-		case "stdout": /* Standard Out */
+		/* look up the driver */
+		internal.RLock()
+		defer internal.RUnlock()
 
-			sargs := make([]string, 0)
-			for i, arg := range args {
-				if i > 1 {
-
-					if str, ok := arg.(RtToken); ok {
-						sargs = append(sargs, string(str))
-					}
-				}
-			}
-
-			/* FIXME:  need to parse in rib options from ctx.options */
-			d, err := BuildRIBStdoutDriver(ctx.logger, options, sargs...)
-			if err != nil {
+		driver,ok := internal.Drivers[string(target)]
+		if !ok {
+			if err := ctx.HandleError(Errorf(rie.System,rie.Error,"unkown driver %s",target)); err != nil {
 				ctx.fatal(err)
 			}
+		}
 
-			ctx.driver = d
-
-			break
-		case "render": /* Render */
-
-			sargs := make([]string, 0)
-			for i, arg := range args {
-				if i > 1 {
-					if str, ok := arg.(RtToken); ok {
-						sargs = append(sargs, string(str))
-					}
+		sargs := make([]string,0)
+		for i,arg := range args {
+			if i > 1 {
+				if str,ok := arg.(RtToken); ok {
+					sargs = append(sargs,string(str))
 				}
 			}
+		}
 
-			d, err := BuildRenderDriver(ctx.logger, options, sargs...)
-			if err != nil {
-				ctx.fatal(err)
-			}
+		/* attempt to build the driver */
+		d,err := driver(ctx.logger,options,sargs...)
+		if err != nil {
+			ctx.fatal(err)
+		}
+		
+		ctx.driver = d
 
-			ctx.driver = d
-
-			break
-		case "catrib": /* Catrib */
-
-			sargs := make([]string, 0)
-			for i, arg := range args {
-				if i > 1 {
-					if str, ok := arg.(RtToken); ok {
-						sargs = append(sargs, string(str))
-					}
-				}
-			}
-
-			d, err := BuildCatribDriver(ctx.logger, options, sargs...)
-			if err != nil {
-				ctx.fatal(err)
-			}
-
-			ctx.driver = d
-			break
-		case "debug": /* Debug */
-
-			sargs := make([]string, 0)
-			for i, arg := range args {
-				if i > 1 {
-					if str, ok := arg.(RtToken); ok {
-						sargs = append(sargs, string(str))
-					}
-				}
-			}
-
-			d, err := BuildDebugDriver(ctx.logger, options, sargs...)
-			if err != nil {
-				ctx.fatal(err)
-			}
-
-			ctx.driver = d
-			break
-		case "block": /* Block Diagramming */
-
-			sargs := make([]string,0)
-			for i,arg := range args {
-				if i > 1 {
-					if str, ok := arg.(RtToken); ok {
-						sargs = append(sargs,string(str))
-					}
-				}
-			}
-
-			d, err := BuildBlockDiagrammingDriver(ctx.logger,options,sargs...)
-			if err != nil {
-				ctx.fatal(err)
-			}
-
-			ctx.driver = d
-		break
-	}
+	
 	break /* end of Begin */
 	case "End", "end":
 		if ctx.open {

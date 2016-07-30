@@ -15,6 +15,7 @@ import (
 )
 
 var localtest bool /* if !localTest then on CI */
+var shorttest bool 
 
 func init() {
 	debug := os.Getenv("RIGO2_DEBUG")
@@ -23,6 +24,10 @@ func init() {
 	} else {
 		localtest = true
 	}
+	short := os.Getenv("RIGO2_DEBUGSHORT")
+	if short != "" {
+		shorttest = true
+	} 
 }
 
 func Test_RIBOptions(t *testing.T) {
@@ -58,6 +63,8 @@ func Test_Context(t *testing.T) {
 
 		ri := Wrap(ctx)
 		So(ri, ShouldNotBeNil)
+
+		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
 
 		ri.Begin("tmp/context.rib")
 
@@ -233,6 +240,8 @@ func Test_Context(t *testing.T) {
 
 		last := ri.Utils.GetLastRIB
 
+		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
+
 		ri.Begin("catrib")
 		ri.Display("render_sphere.tiff", "multires", "rgba")
 		So(last(), ShouldEqual, `Display "render_sphere.tiff" "multires" "rgba"`)
@@ -261,6 +270,9 @@ func Test_Context(t *testing.T) {
 			t.Skip()
 		}
 		ri := Wrap(NewContext(&Configuration{}))
+		
+		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
+
 		ri.Begin("catrib -o tmp/catribtofile.rib")
 		ri.Display("render_sphere.tiff", "multires", "rgba")
 		ri.Format(320, 240, 1)
@@ -323,7 +335,7 @@ func Test_Context(t *testing.T) {
 	Convey("render to file", t, func() {
 
 		/* requires renderer (usually prman) to be installed, skip if not localtest */
-		if !localtest {
+		if !localtest || shorttest {
 			t.Skip()
 		}
 

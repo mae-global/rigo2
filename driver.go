@@ -19,20 +19,6 @@ const (
 
 
 
-/* TODO: add a custom writer driver */
-
-type DriverOptions struct {
-	PrettyPrint bool
-}
-
-func (opts *DriverOptions) String() string {
-	out := ""
-	if opts.PrettyPrint {
-		out = "prettyprint"
-	}
-	return out
-}
-
 type Driver interface {
 	Flush(marker RtString, synchronous RtBoolean, flushmode RtToken)
 	GetProgress() RtInt
@@ -40,6 +26,43 @@ type Driver interface {
 	Close() *RtError
 	GetLastRIB() string
 }
+
+/* construction function for creating a new driver */
+type DriverBuilder func(logger *log.Logger, options []RtPointer, args ...string) (Driver,error)
+
+var internal struct {
+	sync.RWMutex
+	Drivers map[string]DriverBuilder
+}
+
+func init() {
+	
+	/* build the default drivers table */
+	dd := make(map[string]DriverBuilder,0)
+	dd["block"] = BuildBlockDiagrammingDriver
+	dd["stdout"] = BuildRIBStdoutDriver
+	dd["catrib"] = BuildCatribDriver
+	dd["render"] = BuildRenderDriver
+	dd["file"]   = BuildRIBFileDriver
+	
+	internal.Drivers = dd
+}
+
+
+func AddDriver(name string, builder DriverBuilder) error {
+	internal.Lock()
+	defer internal.Unlock()
+	internal.Drivers[name] = builder
+	return nil /* TODO */
+}
+
+func RemoveDriver(name string) error {
+	internal.Lock()
+	defer internal.Unlock()
+	delete(internal.Drivers,name)
+	return nil
+}
+
 
 type ProtectedInteger struct {
 	sync.RWMutex
@@ -51,7 +74,6 @@ type BlockDiagrammingDriver struct {
 	sync.RWMutex
 
 	last string
-	options *DriverOptions
 
 	file io.WriteCloser
 
@@ -164,10 +186,11 @@ func (d *BlockDiagrammingDriver) GetLastRIB() string {
 	return d.last
 }
 
-func BuildBlockDiagrammingDriver(logger *log.Logger, options *DriverOptions, args ...string) (Driver,error) {
+
+
+func BuildBlockDiagrammingDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver,error) {
 
 	d := &BlockDiagrammingDriver{}
-	d.options = options 
 
 	out := DefaultBlockFile
 	if len(args) > 0 {
@@ -199,7 +222,6 @@ type DebugDriver struct {
 
 	last    string
 	depth   int
-	options *DriverOptions
 }
 
 func (d *DebugDriver) Flush(marker RtString, synchronous RtBoolean, flushmode RtToken) {
@@ -214,7 +236,7 @@ func (d *DebugDriver) Handle(name RtString, args []RtPointer, tokens []RtPointer
 
 	out := ""
 
-	if d.options.PrettyPrint {
+	/* FIXME: check indent is on */
 		switch string(name) {
 		case "AttributeBegin", "FrameBegin", "MotionBegin", "ObjectBegin", "SolidBegin", "TransformBegin", "WorldBegin":
 
@@ -228,7 +250,7 @@ func (d *DebugDriver) Handle(name RtString, args []RtPointer, tokens []RtPointer
 		for i := 0; i < d.depth; i++ {
 			out += "\t"
 		}
-	}
+	
 
 	out += RIBStream(name, args, tokens, values)
 	d.last = out
@@ -243,11 +265,10 @@ func (d *DebugDriver) GetLastRIB() string {
 	return d.last
 }
 
-func BuildDebugDriver(logger *log.Logger, options *DriverOptions, args ...string) (Driver, error) {
+func BuildDebugDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver, error) {
 
 	d := &DebugDriver{}
 	d.last = ""
-	d.options = options
 
 	return d, nil
 }
@@ -258,7 +279,8 @@ type RIBFileDriver struct {
 	file    *os.File
 	last    string
 	depth   int
-	options *DriverOptions
+	indent 	bool
+	wide 		bool
 }
 
 func (d *RIBFileDriver) Flush(marker RtString, synchronous RtBoolean, flushmode RtToken) {
@@ -273,7 +295,7 @@ func (d *RIBFileDriver) Handle(name RtString, args []RtPointer, tokens []RtPoint
 
 	out := ""
 
-	if d.options.PrettyPrint {
+	if d.indent {
 		switch string(name) {
 		case "AttributeBegin", "FrameBegin", "MotionBegin", "ObjectBegin", "SolidBegin", "TransformBegin", "WorldBegin":
 
@@ -304,10 +326,10 @@ func (d *RIBFileDriver) GetLastRIB() string {
 	return d.last
 }
 
-func BuildRIBFileDriver(logger *log.Logger, options *DriverOptions, args ...string) (Driver, error) {
-
-	//	logger.Printf("RIBFileDriver options = %s\n",options)
-
+func BuildRIBFileDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver, error) {
+	
+	logger.Printf("Building RIB File Driver, options=%s, args=%s\n",options,args)
+	
 	filename := args[0]
 	f, err := os.Create(filename)
 	if err != nil {
@@ -316,8 +338,38 @@ func BuildRIBFileDriver(logger *log.Logger, options *DriverOptions, args ...stri
 
 	d := &RIBFileDriver{}
 	d.file = f
-	d.options = options
 
+	params,values := Unmix(options)
+	for i,param := range params {
+		value := values[i]
+		tkn,ok := param.(RtToken)
+		if !ok {
+			continue
+		}
+		switch string(tkn) {
+			case "asciistyle":
+				/* comma seperated list */
+				val,ok := value.(RtString)
+				if !ok {
+					continue
+				}
+				parts := strings.Split(string(val),",")
+				/* go through the parts and setup */
+				for _,part := range parts {
+					switch part {
+						case "indent":
+							d.indent = true
+						break
+						case "wide":
+							d.wide = true
+						break
+					}
+			}
+			break
+			/* TODO: add the rest in */
+		}
+	}
+	
 	return d, nil
 }
 
@@ -325,7 +377,8 @@ type RIBStdoutDriver struct {
 	last    string
 	depth   int
 	proc    bool /* is used by procedural calls, will append \377 to stdout */
-	options *DriverOptions
+	indent  bool /* tab */
+	wide    bool /* do not auto carriage return long statements */
 }
 
 func (d *RIBStdoutDriver) Flush(marker RtString, synchronous RtBoolean, flushmode RtToken) {
@@ -340,7 +393,7 @@ func (d *RIBStdoutDriver) Handle(name RtString, args []RtPointer, tokens []RtPoi
 
 	out := ""
 
-	if d.options.PrettyPrint {
+	if d.indent {
 		switch string(name) {
 		case "AttributeBegin", "FrameBegin", "MotionBegin", "ObjectBegin", "SolidBegin", "TransformBegin", "WorldBegin":
 
@@ -355,7 +408,9 @@ func (d *RIBStdoutDriver) Handle(name RtString, args []RtPointer, tokens []RtPoi
 			out += "\t"
 		}
 	}
+	
 	out += RIBStream(name, args, tokens, values)
+	/* FIXME, take into account "wide" */
 	fmt.Fprintf(os.Stdout, "%s\n", out)
 	d.last = out
 	return nil
@@ -372,16 +427,49 @@ func (d *RIBStdoutDriver) GetLastRIB() string {
 	return d.last
 }
 
-func BuildRIBStdoutDriver(logger *log.Logger, options *DriverOptions, args ...string) (Driver, error) {
+func BuildRIBStdoutDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver, error) {
+
+	logger.Printf("Building RIB Stdout Driver, options=%s, args=%s\n",options,args)
 
 	d := &RIBStdoutDriver{}
-	d.options = options
 
 	for _, arg := range args {
 		if arg == "proc" {
 			d.proc = true
 		}
 	}
+
+	params,values := Unmix(options)
+	for i,param := range params {
+		value := values[i]
+		tkn,ok := param.(RtToken)
+		if !ok {
+			continue
+		}
+		switch string(tkn) {
+			case "asciistyle":
+				/* comma seperated list */
+				val,ok := value.(RtString)
+				if !ok {
+					continue
+				}
+				parts := strings.Split(string(val),",")
+				/* go through the parts and setup */
+				for _,part := range parts {
+					switch part {
+						case "indent":
+							d.indent = true
+						break
+						case "wide":
+							d.wide = true
+						break
+					}
+			}
+			break
+			/* TODO: add the rest in */
+		}
+	}
+	
 
 	return d, nil
 }
@@ -421,7 +509,7 @@ func (d *CatribDriver) GetLastRIB() string {
 	return d.last
 }
 
-func BuildCatribDriver(logger *log.Logger, options *DriverOptions, args ...string) (Driver, error) {
+func BuildCatribDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver, error) {
 
 	//logger.Printf("CatribDriver options = %s\n",options)
 
@@ -493,7 +581,7 @@ func (d *RenderDriver) GetLastRIB() string {
 	return d.last
 }
 
-func BuildRenderDriver(logger *log.Logger, options *DriverOptions, args ...string) (Driver, error) {
+func BuildRenderDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver, error) {
 
 	//logger.Printf("RenderDriver options = %s\n",options)
 
