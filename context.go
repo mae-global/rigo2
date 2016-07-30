@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"strconv"
 
 	. "github.com/mae-global/rigo2/ri"
 	. "github.com/mae-global/rigo2/ri/core"
@@ -273,6 +274,10 @@ func (s *Statistics) IncrementToken(name RtToken) {
 }
 
 
+/* all options defined before RiBegin is called */
+type OptionBlock map[RtToken]RtPointer
+
+
 /* Context */
 type Context struct {
 	sync.RWMutex
@@ -288,6 +293,8 @@ type Context struct {
 	driver Driver
 
 	statistics *Statistics
+
+	options map[RtToken]OptionBlock
 }
 
 /* NewContext */
@@ -324,6 +331,38 @@ func NewContext(config *Configuration) *Context {
 
 	ctx.statistics = new(Statistics)
 	ctx.statistics.Tokens = make(map[RtToken]int,0)
+
+	ctx.options = make(map[RtToken]OptionBlock,0)
+
+	/* build basic setup */
+	ctx.options[RtToken("rib")] = OptionBlock(make(map[RtToken]RtPointer,0))
+
+	rib := ctx.options[RtToken("rib")]
+	
+	/* defaults : */
+	rib[RtToken("format")] = RtString("ascii")
+	rib[RtToken("asciistyle")] = RtString("indented,wide")
+	rib[RtToken("compression")] = RtString("")
+	rib[RtToken("percision")] = RtInt(6)
+
+	/* override with local env : */
+
+	if style := os.Getenv("RIASCIISTYLE"); style != "" {
+		rib[RtToken("asciistyle")] = RtString(style)
+	}  
+
+	if compression := os.Getenv("RICOMPRESSION");  compression != "" {
+		rib[RtToken("compression")] = RtString(compression)
+	}
+
+	if percision := os.Getenv("RIPERCISION"); percision != "" {
+		p,err := strconv.Atoi(percision)
+		if err != nil {
+			ctx.logger.Printf("RIPERCISION \"%s\" error -- %v, using default\n",percision,err)
+		} else {
+			rib[RtToken("percision")] = RtInt(p)
+		}
+	}		
 
 
 	return ctx
@@ -662,6 +701,7 @@ func (ctx *Context) Handle(list []RtPointer) {
 				}
 			}
 
+			/* FIXME:  need to parse in rib options from ctx.options */
 			d, err := BuildRIBStdoutDriver(ctx.logger, options, sargs...)
 			if err != nil {
 				ctx.fatal(err)
@@ -761,10 +801,41 @@ func (ctx *Context) Handle(list []RtPointer) {
 		}
 	default:
 		if !ctx.open {
-			if err := ctx.HandleError(Error(rie.NotStarted, rie.Error, "must call begin first")); err != nil {
-				ctx.fatal(err)
+
+			/* check for options */
+			if string(name) == "Option" {
+
+					tkn,ok := args[0].(RtToken)
+					if !ok {
+						/* FIXME: report unexpected non-token */
+						return
+					}
+
+					block,exists := ctx.options[tkn]
+					if !exists {
+						ctx.options[tkn] = OptionBlock(make(map[RtToken]RtPointer,0))
+						block = ctx.options[tkn]
+					}
+
+					for i,param := range params {
+
+						/* TODO: use specification of param */
+						ptkn,ok := param.(RtToken)
+						if !ok {
+							continue
+						}				
+						ctx.logger.Printf("Option %s %s = %s\n",tkn,param,values[i])		
+						block[ptkn] = values[i]
+					}				
+
+				return /* as handled */
+			} else {
+
+				if err := ctx.HandleError(Errorf(rie.NotStarted, rie.Error, "must call begin first -- %s",name)); err != nil {
+					ctx.fatal(err)
+				}
+				return
 			}
-			return
 		}
 
 		/* RIB output --> pass down data sequence */

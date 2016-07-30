@@ -25,6 +25,30 @@ func init() {
 	}
 }
 
+func Test_RIBOptions(t *testing.T) {
+
+	Convey("RIB Options",t,func() {
+
+		ri := New(&Configuration{Debug:true})
+		
+		ri.Option("rib",RtToken("format"),RtString("ascii"))
+		ri.Option("rib",RtToken("asciistyle"),RtString("indented,wide"))	/* can be set with env RIASCIISTYLE also */
+		ri.Option("rib",RtToken("compression"),RtString("gzip"))    /* can be set with env RICOMPRESSION also */
+		ri.Option("rib",RtToken("percision"),RtInt(6))
+
+		ri.Begin("out/rib_options.rib.gz")
+
+		ri.WorldBegin()
+			ri.Sphere(1,-1,1,360)
+		ri.WorldEnd()
+
+		ri.End()
+	})
+}
+
+
+
+
 func Test_Context(t *testing.T) {
 
 	Convey("Context", t, func() {
