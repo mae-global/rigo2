@@ -22,7 +22,7 @@ import (
 )
 
 /* create a context to work with */
-ri := rigo.New(&rigo.Configuration{PrettyPrint:true})
+ri := rigo.New(nil)
 
 ri.Begin("unitcube.rib")
 ri.AttributeBegin()
