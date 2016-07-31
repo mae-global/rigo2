@@ -350,8 +350,19 @@ func ParseBegin(statement RtToken) ([]RtPointer, error) {
 		}
 		break
 	default:
-		out = []RtPointer{statement}
+		if strings.HasSuffix(parts[0],".rib") || strings.HasSuffix(parts[0],".rib.gz") {
+			out = []RtPointer{statement}
+		} else {
+
+			out = []RtPointer{RtToken("|"),RtToken(parts[0])}
+			if len(parts) > 1 {
+				for _,str := range parts[1:] {
+					out = append(out,RtToken(str))
+				}
+			}
+		}
 		break
+	
 	}
 
 	return out, nil

@@ -14,6 +14,7 @@ import (
 	. "github.com/mae-global/rigo2/ri"
 	. "github.com/mae-global/rigo2/ri/core"
 
+	"github.com/mae-global/rigo2/drivers"
 	"github.com/mae-global/rigo2/rie"
 )
 
@@ -291,7 +292,7 @@ type Context struct {
 	logger *log.Logger
 
 	config Configuration
-	driver Driver
+	driver drivers.Driver
 
 	statistics *Statistics
 
@@ -676,7 +677,13 @@ func (ctx *Context) Handle(list []RtPointer) {
 				}
 			}
 
-			d, err := BuildRIBFileDriver(ctx.logger, options, sargs...)
+			/* then use the default file driver */
+			driver,err := FindDriver("file")
+			if err != nil {
+				ctx.fatal(err)
+			}
+
+			d, err := driver(ctx.logger,options,sargs...)
 			if err != nil {
 				ctx.fatal(err)
 			}
@@ -694,14 +701,9 @@ func (ctx *Context) Handle(list []RtPointer) {
 		}
 
 		/* look up the driver */
-		internal.RLock()
-		defer internal.RUnlock()
-
-		driver,ok := internal.Drivers[string(target)]
-		if !ok {
-			if err := ctx.HandleError(Errorf(rie.System,rie.Error,"unkown driver %s",target)); err != nil {
-				ctx.fatal(err)
-			}
+		driver,err := FindDriver(string(target))
+		if err != nil {
+			ctx.fatal(err)			
 		}
 
 		sargs := make([]string,0)

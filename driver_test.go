@@ -6,18 +6,18 @@ import (
 
 	. "github.com/mae-global/rigo2/ri"
 	. "github.com/mae-global/rigo2/ri/core"
+	"github.com/mae-global/rigo2/drivers"
+	"github.com/mae-global/rigo2/drivers/RIB"
 
 	. "github.com/smartystreets/goconvey/convey"
-
 )
 
 func Test_Driver(t *testing.T) {
 
 	/* construct a custom driver (we cheat by using an existing driver) */
-	custom := func(logger *log.Logger, options []RtPointer, args ...string) (Driver,error) {
-		return BuildRIBStdoutDriver(logger,options,args...)			
+	custom := func(logger *log.Logger, options []RtPointer, args ...string) (drivers.Driver,error) {
+		return ribdriver.BuildStdoutDriver(logger,options,args...)			
 	}
-
 
 	Convey("Custom Driver test",t,func() {
 
