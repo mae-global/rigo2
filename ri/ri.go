@@ -565,6 +565,8 @@ func (ri *Ri) LightFilterV(name, handle RtToken, n RtInt, tokens []RtToken, valu
 	ri.LightFilter(name, handle, ListParams(tokens, values)...)
 }
 
+
+/* LightSource -- depreciated in RenderMan 21.0 */
 func (ri *Ri) LightSource(name RtToken, handle RtLightHandle, parameterlist ...RtPointer) RtLightHandle {
 	h, err := ri.ctx.GenHandle(string(handle), "light")
 	if err != nil {
@@ -574,12 +576,31 @@ func (ri *Ri) LightSource(name RtToken, handle RtLightHandle, parameterlist ...R
 		h = string(handle)
 	}
 
-	ri.ctx.Handle(AnnotatedList("LightSource", []RtPointer{name, RtLightHandle(h)}, parameterlist,[]RtPointer{RtToken("lighthandle asset"),RtLightHandle(h)}))
+	ri.ctx.Handle(AnnotatedList("LightSource", []RtPointer{name, RtLightHandle(h)}, parameterlist,[]RtPointer{RtToken("lighthandle asset"),RtLightHandle(h),RtToken("int depreciated"),RtInt(21)}))
 	return RtLightHandle(h)
 }
 
 func (ri *Ri) LightSourceV(name RtToken, handle RtLightHandle, n RtInt, tokens []RtToken, values []RtPointer) RtLightHandle {
 	return ri.LightSource(name, handle, ListParams(tokens, values)...)
+}
+
+
+/* Light -- added in RenderMan 21.0 */
+func (ri *Ri) Light(name RtToken, handle RtLightHandle, parameterlist ...RtPointer) RtLightHandle {
+	h, err := ri.ctx.GenHandle(string(handle),"light")
+	if err != nil {
+		if err := ri.ctx.HandleError(Error(2,3,err.Error())); err != nil {
+			panic(err)
+		}
+		h = string(handle)
+	}
+
+	ri.ctx.Handle(AnnotatedList("Light",[]RtPointer{name,RtLightHandle(h)},parameterlist,[]RtPointer{RtToken("lighthandle asset"),RtLightHandle(h)}))
+	return RtLightHandle(h)
+}
+
+func (ri *Ri) LightV(name RtToken, handle RtLightHandle, n RtInt, tokens []RtToken, values []RtPointer) RtLightHandle {
+	return ri.Light(name,handle,ListParams(tokens,values)...)
 }
 
 func (ri *Ri) MakeBrickMap(nptcs RtInt, ptcs []string, bkm string, parameterlist ...RtPointer) {
