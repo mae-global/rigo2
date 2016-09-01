@@ -717,7 +717,8 @@ func (ctx *Context) Handle(list []RtPointer) {
 			options = append(options,value)
 		}		
 
-		/* do the same for "driver" */
+		/* do the same for "driver", NOTE: the driver options should be 
+		 * different to the rib options so not needed to double check */
 		block = ctx.options[RtToken("driver")]
 		if block != nil {
 			for param,value := range block {

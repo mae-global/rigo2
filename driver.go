@@ -10,6 +10,7 @@ import (
 	"github.com/mae-global/rigo2/drivers/Catrib"
 	"github.com/mae-global/rigo2/drivers/Documentor"
 	"github.com/mae-global/rigo2/drivers/Rigo"
+	"github.com/mae-global/rigo2/drivers/Block"
 
 )
 
@@ -31,10 +32,6 @@ func init() {
 	
 	/* build the default drivers table */
 	dd := make(map[string]drivers.Builder,0)
-	//dd["block"] = BuildBlockDiagrammingDriver
-	//dd["stdout"] = BuildRIBStdoutDriver
-	//dd["catrib"] = BuildCatribDriver
-	//dd["render"] = BuildRenderDriver
 	
 	dd["file"]   = ribdriver.BuildFileDriver
 	dd["stdout"] = ribdriver.BuildStdoutDriver
@@ -45,6 +42,8 @@ func init() {
 
 	dd["doc"] = documentordriver.BuildDriver
 	dd["rigo"] = rigodriver.BuildDriver
+
+	dd["block"] = blockdriver.BuildDriver
 	
 	internal.Drivers = dd
 }
