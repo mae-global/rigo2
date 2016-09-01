@@ -1,15 +1,10 @@
-package documentatordriver
+package documentordriver
 
 /* For documenting purposes, this driver will generate html/css code for both the minimal go program and the RIB output */ 
 
 import (
-	"fmt"
-	"io"
-	"log"
-	"os/exec"
-	"strconv"
-	"strings"
 	"sync"
+	"log"
 
 	. "github.com/mae-global/rigo2/ri"
 	. "github.com/mae-global/rigo2/ri/core"
@@ -17,7 +12,7 @@ import (
 )
 
 
-type documentatorDriver struct {
+type documentorDriver struct {
 	sync.RWMutex
 
 	last string
@@ -26,40 +21,35 @@ type documentatorDriver struct {
 	progress *ProtectedInteger
 }
 
-func (d *documentatorDriver) Flush(marker RtString, synchronous RtBoolean, flushmode RtToken) {
-	/* TODO: talk to renderer via Ric */
+func (d *documentorDriver) Flush(marker RtString, synchronous RtBoolean, flushmode RtToken) {
+
 }
 
-func (d *documentatorDriver) GetProgress() RtInt {
+func (d *documentorDriver) GetProgress() RtInt {
 	d.progress.RLock()
 	defer d.progress.RUnlock()
 	return RtInt(d.progress.Value)
 }
 
-func (d *documentatorDriver) Handle(name RtString, args []RtPointer, tokens []RtPointer, values []RtPointer) *RtError {
+func (d *documentorDriver) Handle(name RtString, args []RtPointer, tokens []RtPointer, values []RtPointer) *RtError {
 	d.last = RIBStream(name, args, tokens, values)
 
 	return nil
 }
 
-func (d *documentatorDriver) Close() *RtError {
-
-	d.out.Close()
-
-	/* wait on the process to finish */
-	//d.cmd.Wait()
+func (d *documentorDriver) Close() *RtError {
 
 	return nil
 }
 
-func (d *documentatorDriver) GetLastRIB() string {
+func (d *documentorDriver) GetLastRIB() string {
 	return d.last
 }
 
 func BuildDriver(logger *log.Logger, options []RtPointer, args ...string) (Driver, error) {
 
 
-	d := &documentatorDriver{}
+	d := &documentorDriver{}
 	d.progress = new(ProtectedInteger)
 	d.progress.Value = 100
 

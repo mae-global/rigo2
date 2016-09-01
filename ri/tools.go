@@ -292,7 +292,6 @@ func RIBStream(name RtString, args, tokens, values []RtPointer) string {
 	return out
 }
 
-/* ParseBegin -- parse the Begin statement TODO: move this code inline to context.go */
 func ParseBegin(statement RtToken) ([]RtPointer, error) {
 	/* examples :-
 	 * RI_NULL : in-which case out.rib should be used
@@ -308,6 +307,7 @@ func ParseBegin(statement RtToken) ([]RtPointer, error) {
 	case "", "-":
 		out = []RtPointer{RtToken("out.rib")}
 		break
+	/*
 	case "stdout":
 		out = []RtPointer{RtToken("|"), RtToken("stdout")}
 		if len(parts) > 1 {
@@ -330,8 +330,7 @@ func ParseBegin(statement RtToken) ([]RtPointer, error) {
 			for _, str := range parts[1:] {
 				out = append(out, RtToken(str))
 			}
-		}
-		/* TODO: add net here */
+		}		
 		break
 	case "debug":
 		out = []RtPointer{RtToken("|"), RtToken("debug")}
@@ -349,6 +348,7 @@ func ParseBegin(statement RtToken) ([]RtPointer, error) {
 			}
 		}
 		break
+	*/
 	default:
 		if strings.HasSuffix(parts[0],".rib") || strings.HasSuffix(parts[0],".rib.gz") {
 			out = []RtPointer{statement}

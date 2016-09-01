@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	. "github.com/mae-global/rigo2/ri"
 	. "github.com/mae-global/rigo2/ri/core"
@@ -34,12 +33,15 @@ func Test_RIBOptions(t *testing.T) {
 
 	Convey("RIB Options",t,func() {
 
-		ri := New(&Configuration{Debug:true})
+		ri := New(nil)
 		
 		ri.Option("rib",RtToken("format"),RtString("ascii"))
 		ri.Option("rib",RtToken("asciistyle"),RtString("indented,wide"))	/* can be set with env RIASCIISTYLE also */
 		ri.Option("rib",RtToken("compression"),RtString("gzip"))    /* can be set with env RICOMPRESSION also */
 		ri.Option("rib",RtToken("percision"),RtInt(6))
+
+		/* turn debugging on */
+		ri.Option("driver",RtToken("debug"),RtBoolean(true))
 
 		ri.Begin("out/rib_options.rib.gz")
 
@@ -51,6 +53,48 @@ func Test_RIBOptions(t *testing.T) {
 	})
 }
 
+func Test_Callback(t *testing.T) {
+
+	Convey("Context Callback",t,func() {
+	
+		count := 0
+
+		/* define a custom callback handler, this gets called via a goroutine */
+		customFrameBeginCallback := func(name RtString,args,tokens,values []RtPointer) bool {
+			fmt.Fprintf(os.Stderr,"CustomCallbackHandler called -- %s\n",name)
+			count++		
+
+			return false /* tell the handler to ignore this particular call */
+		}
+
+
+		config := NewConfiguration()
+		So(config,ShouldNotBeNil)
+		So(config.Callbacks,ShouldNotBeNil)
+
+		config.Callbacks["FrameBegin"] = customFrameBeginCallback
+
+		ctx := NewContext(config)
+		So(ctx,ShouldNotBeNil)
+	
+		ri := Wrap(ctx)
+	
+		ri.Option("driver",RtToken("int fragment"),RtInt(1))
+
+		ri.Begin("tmp/out.rib")
+
+		ri.FrameBegin(1)
+		
+		/* Because our custom handler ignores all FrameBegin calls we should expect a RenderMan RIB structure
+		 * statement instead */
+		So(ri.Utils.GetLastRIB(),ShouldEqual,`##RenderMan RIB`) 		
+		ri.End()
+
+		So(count,ShouldEqual,1)
+		
+	})
+}
+		
 
 
 
@@ -96,56 +140,7 @@ func Test_Context(t *testing.T) {
 		ri.End()
 
 	})
-
-	Convey("Switching Context", t, func() {
-
-		/* FIXME: this needs actually fixing, the ideal presentation is
-		     * ctx,ctx2 RtContextHandler
-					 the actual context gets defined with Begin(...)
-		       NOTE: whilst this works directly for the RenderMan Interface (Ri struct)
-		             it does not affect the Utils. So using ri.Utils.GetProgress() will
-		             _only_ return the progress of the original context.
-		*/
-
-		ri := Wrap(NewContext(&Configuration{}))
-		So(ri, ShouldNotBeNil)
-
-		ctx := ri.GetContext()
-		So(ctx, ShouldNotBeNil)
-
-		ctx2 := NewContext(&Configuration{})
-
-		ri.Begin("tmp/a.rib")
-		ri.Context(ctx2)
-		ri.Begin("tmp/b.rib")
-		ri.Context(ctx)
-
-		ri.ArchiveRecord("structure", "Test %s", "A")
-		ri.Context(ctx2)
-
-		ri.ArchiveRecord("structure", "Test %s", "B")
-		ri.Context(ctx)
-
-		ri.End()
-		for {
-			time.Sleep(10 * time.Millisecond)
-			progress := ri.Utils.GetProgress()
-			if int(progress) >= 100 {
-				break
-			}
-		}
-
-		ri.Context(ctx2)
-		ri.End()
-		for {
-			time.Sleep(10 * time.Millisecond)
-			progress := ri.Utils.GetProgress()
-			if int(progress) >= 100 {
-				break
-			}
-		}
-
-	})
+	
 
 	Convey("NotStarted Error", t, func() {
 
@@ -165,11 +160,12 @@ func Test_Context(t *testing.T) {
 		/* throw a Not Started error by using RiFrameBegin
 		 * before calling RiBegin
 		 */
-		ctx := NewContext(&Configuration{Debug: true, Errorf: handler})
+		ctx := NewContext(&Configuration{Errorf: handler})
 		So(ctx, ShouldNotBeNil)
 
 		ri := Wrap(ctx)
 		So(ri, ShouldNotBeNil)
+	
 
 		ri.FrameBegin(1)
 		So(called, ShouldBeTrue)
@@ -188,7 +184,7 @@ func Test_Context(t *testing.T) {
 			return nil
 		}
 
-		ctx := NewContext(&Configuration{Debug: true, Errorf: handler})
+		ctx := NewContext(&Configuration{Errorf: handler})
 		So(ctx, ShouldNotBeNil)
 
 		ri := Wrap(ctx)
@@ -200,7 +196,7 @@ func Test_Context(t *testing.T) {
 
 	Convey("NULL and '-' defaults to out.rib", t, func() {
 
-		ctx := NewContext(&Configuration{Debug: true})
+		ctx := NewContext(nil)
 		So(ctx, ShouldNotBeNil)
 
 		ri := Wrap(ctx)
@@ -222,7 +218,7 @@ func Test_Context(t *testing.T) {
 
 	Convey("stdout", t, func() {
 
-		ctx := NewContext(&Configuration{Debug: false})
+		ctx := NewContext(nil)
 		So(ctx, ShouldNotBeNil)
 
 		ri := Wrap(ctx)
@@ -236,7 +232,7 @@ func Test_Context(t *testing.T) {
 		if !localtest {
 			t.Skip()
 		}
-		ri := Wrap(NewContext(&Configuration{}))
+		ri := Wrap(NewContext(nil))
 
 		last := ri.Utils.GetLastRIB
 
@@ -269,7 +265,7 @@ func Test_Context(t *testing.T) {
 		if !localtest {
 			t.Skip()
 		}
-		ri := Wrap(NewContext(&Configuration{}))
+		ri := Wrap(NewContext(nil))
 		
 		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
 

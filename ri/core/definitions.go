@@ -8,6 +8,7 @@ import (
 type RtContextHandle interface {
 	HandleError(*RtError) *RtError
 	Handle([]RtPointer)
+	HandleV(RtString,[]RtPointer,[]RtPointer,[]RtPointer)
 	GenHandle(string, string) (string, error)
 	Set(string, string) RtToken /* Dictionary, entries set with RiDeclare() */
 	GetProgress() RtInt         /* Get the current progress (as from a pipe output when rendering) */

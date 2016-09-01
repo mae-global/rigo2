@@ -17,6 +17,10 @@ func (t *testRiContext) GenHandle(name,typeof string) (string,error) {	return na
 func (t *testRiContext) Set(name,declaration string) RtToken {	return RtToken(declaration + " " + name) }
 func (t *testRiContext) GetProgress() RtInt { return RtInt(100) }
 func (t *testRiContext) GetLastRIB() string {	return t.last }
+func (t *testRiContext) HandleV(name RtString,args,tokens,values []RtPointer) {
+	t.Handle(List(name,args,Mix(tokens,values)))
+}
+
 func (t *testRiContext) Handle(list []RtPointer) {
 
 	/* Do the minimal amount of work to generate a RIB output */
@@ -118,7 +122,6 @@ func zero(n int) RtFloatArray {
 	f := make([]RtFloat,n)
 	return RtFloatArray(f)
 }	
-
 
 
 func Test_AllofRi(t *testing.T) {
@@ -385,10 +388,6 @@ func Test_AllofRi(t *testing.T) {
 
 	})
 }
-
-
-
-
 
 
 

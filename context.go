@@ -11,12 +11,22 @@ import (
 	"sync"
 	"strconv"
 
+
 	. "github.com/mae-global/rigo2/ri"
 	. "github.com/mae-global/rigo2/ri/core"
 
 	"github.com/mae-global/rigo2/drivers"
 	"github.com/mae-global/rigo2/rie"
 )
+
+/* TODO: 
+ * 
+ * + add gzip support to File and Stdout drivers
+ */
+
+
+/* Custom callback Handler */
+type CustomCallbackHandler func(name RtString,args,tokens,values []RtPointer) bool
 
 /* HandleGeneratorHandler -- generate handles, RtLightHandle, ... */
 type HandleGeneratorHandler func(name, typeof string) (string, error)
@@ -30,6 +40,11 @@ func DefaultHandleGeneratorHandler(name, typeof string) (string, error) {
 		if err != nil {
 			return "-", err
 		}
+
+		if typeof == "" || typeof == "-" {
+			return hex.EncodeToString(b[:n]),nil
+		}
+
 		return typeof + "_" + hex.EncodeToString(b[:n]), nil
 	}
 
@@ -54,16 +69,20 @@ func PrintErrorHandler(code, severity int, msg string) error {
 
 /* Configuration */
 type Configuration struct {
-	/* TODO: note all these bools can be replaced with an RiOptions("generator",...) set */
-	Debug       bool /* use debug sequence */
-	ReadAhead   bool /* use type readahead */
-	Strict      bool /* use strict checking of types */
-	Fragment    bool /* don't do any automagic stuff */
-
 	Errorf  ErrorHandler /* Error Handler function */
 	Handlef HandleGeneratorHandler
 	Logger  *log.Logger
+	Callbacks map[string]CustomCallbackHandler
 }
+
+func NewConfiguration() *Configuration {
+
+	config := new(Configuration)
+	config.Callbacks = make(map[string]CustomCallbackHandler,0)
+	return config
+}
+
+
 
 type BlockInfo struct {
 	Type string
@@ -309,10 +328,13 @@ func NewContext(config *Configuration) *Context {
 	ctx := new(Context)
 	ctx.dict = make(map[string]string, 0)
 
-	ctx.config.Debug = config.Debug
-	ctx.config.ReadAhead = config.ReadAhead
-	ctx.config.Strict = config.Strict
-	ctx.config.Fragment = config.Fragment
+	if config.Callbacks != nil {
+		ctx.config.Callbacks = make(map[string]CustomCallbackHandler,0)
+	
+		for name,value := range config.Callbacks {
+			ctx.config.Callbacks[name] = value
+		}
+	}
 
 	if config.Errorf != nil {
 		ctx.errorhandler = config.Errorf
@@ -365,6 +387,15 @@ func NewContext(config *Configuration) *Context {
 		}
 	}		
 
+	/* driver defaults */	
+	ctx.options[RtToken("driver")] = OptionBlock(make(map[RtToken]RtPointer,0))
+	driver := ctx.options[RtToken("driver")]
+
+	driver[RtToken("debug")] = RtBoolean(false)
+	driver[RtToken("readahead")] = RtBoolean(false)
+	driver[RtToken("strict")] = RtBoolean(false)
+	driver[RtToken("fragment")] = RtBoolean(false)
+
 
 	return ctx
 }
@@ -408,6 +439,9 @@ func (ctx *Context) GenHandle(name, typeof string) (string, error) {
 
 /* HandleError */
 func (ctx *Context) HandleError(err *RtError) *RtError {
+	ctx.RLock()
+	defer ctx.RUnlock()
+
 	if ctx.errorhandler != nil {
 		if err2 := ctx.errorhandler(err.Code, err.Severity, err.Msg); err2 != nil {
 			return Error(err.Code, err.Severity, err2.Error())
@@ -416,7 +450,10 @@ func (ctx *Context) HandleError(err *RtError) *RtError {
 	}
 
 	/* else use abort handler */
-	if ctx.config.Debug {
+	driver := ctx.options[RtToken("driver")]
+	debug := driver[RtToken("debug")]
+
+	if debug.(RtBoolean) == true {
 		if err2 := AbortErrorHandler(err.Code, err.Severity, err.Msg); err2 != nil {
 			return Error(err.Code, err.Severity, err2.Error())
 		}
@@ -427,6 +464,10 @@ func (ctx *Context) HandleError(err *RtError) *RtError {
 	}
 
 	return nil
+}
+
+func (ctx *Context) HandleV(name RtString,args []RtPointer,tokens []RtPointer,values []RtPointer) {
+	ctx.Handle(List(name, args, Mix(tokens,values)))
 }
 
 /* Handle */
@@ -509,7 +550,14 @@ func (ctx *Context) Handle(list []RtPointer) {
 	}
 	ctx.RUnlock()
 
-	inlineparams := 0 /* number of tokens that are inline */
+	inlineparams := 0 /* number of tokens that are inline */	
+
+	driver := ctx.options[RtToken("driver")]
+
+	strict := driver[RtToken("strict")]
+	readahead := driver[RtToken("readahead")]
+	debug := driver[RtToken("debug")]
+	fragment := driver[RtToken("fragment")]
 
 	for i, param := range tokens {
 
@@ -537,8 +585,10 @@ func (ctx *Context) Handle(list []RtPointer) {
 				info = Merge(info2, info) /* info2 provides the base, whilst info will override with inline parts */
 			}
 
+		
+
 			/* DEBUG: use for debug and development purposes only */
-			if info.Type == "" && ctx.config.ReadAhead { /* read the actual value and get the type information */
+			if info.Type == "" && readahead.(RtBoolean) == true { /* read the actual value and get the type information */
 				value := values[i]
 				info3 := Specification(value.Type() + " " + info.Name)
 				info = Merge(info, info3)
@@ -564,7 +614,7 @@ func (ctx *Context) Handle(list []RtPointer) {
 		case "AttributeEnd", "FrameEnd", "MotionEnd", "ObjectEnd", "SolidEnd", "TransformEnd", "WorldEnd","IfEnd":
 		
 			/* check if the End and Begin match */
-			if ctx.config.Strict {
+			if strict.(RtBoolean) == true {
 				block := strings.TrimSuffix(ctx.statistics.CurrentBlock(),"Begin")
 				if block != strings.TrimSuffix(string(name),"End") {
 					if err := ctx.HandleError(Errorf(rie.BadToken,rie.Error,"block mismatch, expecting %s, but got %s instead",block + "End", string(name))); err != nil {
@@ -603,17 +653,16 @@ func (ctx *Context) Handle(list []RtPointer) {
 	}
 				
 
-
 	
 	/* go through all and check the tokens against the values */
-	if ctx.config.Strict {
+	if strict.(RtBoolean) == true {
 		for i, token := range tokens2 {
 			value := values[i]
 			info := Specification(string(token))
 
 			if info.Type == "" { /* nothing set */
 				if err := ctx.HandleError(Error(rie.BadToken, rie.Error, "bad parameter|token, unknown value type")); err != nil {
-					if ctx.config.Debug {
+					if debug.(RtBoolean) == true {
 						fmt.Printf("!! info = %s\n!! value = %s %v\n", info.String2(), value.Type(), value)
 					}
 					log.Fatal(err)
@@ -623,7 +672,7 @@ func (ctx *Context) Handle(list []RtPointer) {
 			if value.Type() != info.LongType() && info.Class != "vertex" {
 				/* FIXME: */
 				if err := ctx.HandleError(Errorf(rie.Consistency, rie.Error, "bad parameter, expecting %s, but was %s", info.LongType(), value.Type())); err != nil {
-					if ctx.config.Debug {
+					if debug.(RtBoolean) == true {
 						fmt.Printf("!! info = %s\n!! value = %s %v\n", info.String2(), value.Type(), value)
 					}
 					log.Fatal(err)
@@ -667,6 +716,15 @@ func (ctx *Context) Handle(list []RtPointer) {
 			options = append(options,param)
 			options = append(options,value)
 		}		
+
+		/* do the same for "driver" */
+		block = ctx.options[RtToken("driver")]
+		if block != nil {
+			for param,value := range block {
+				options = append(options,param)
+				options = append(options,value)
+			}
+		}
 
 		if string(statement) != "|" {
 			sargs := make([]string, 0)
@@ -730,6 +788,8 @@ func (ctx *Context) Handle(list []RtPointer) {
 			ctx.open = false
 
 			if ctx.driver != nil {
+				/* wait on the driver to finish -- TODO: add an override option here */
+		
 				ctx.driver.Close()
 			}
 
@@ -792,8 +852,8 @@ func (ctx *Context) Handle(list []RtPointer) {
 			}
 
 			if !ctx.seen {
-				/* inject into pipe ##RenderMan RIB */
-				if !ctx.config.Fragment {
+				/* inject into pipe ##RenderMan RIB */				
+				if fragment.(RtBoolean) == false {
 					/* if we are a fragment then ignore */
 					ctx.Handle(List("##", []RtPointer{RtString("RenderMan RIB")}, nil))
 				}
@@ -801,7 +861,33 @@ func (ctx *Context) Handle(list []RtPointer) {
 			}
 		}
 
-		if ctx.driver != nil {
+		/* custom callback can override the call, false indicates to cancel the call */
+		cont := true
+
+		/* If the user has set any callback handlers */
+		if ctx.config.Callbacks != nil {		
+
+			/* if the user has set any callbacks, check the name against the map */
+			var callback CustomCallbackHandler
+
+			/* first check for global handler */
+			if c,exists := ctx.config.Callbacks["*"]; exists {
+				callback = c
+			}
+
+			/* now try and override with specific */
+			if c,exists := ctx.config.Callbacks[string(name)]; exists {
+				callback = c
+			}
+
+			if callback != nil {
+				cont = callback(name,args,tokens,values)
+			}
+		}
+
+		/* Actually talk to the driver */
+		if ctx.driver != nil && cont  {
+
 			ctx.driver.Handle(name, args, tokens, values)
 		}
 

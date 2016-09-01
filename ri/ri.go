@@ -3,6 +3,8 @@ package ri
 import (
 	"fmt"	
 	"time"
+	"io"
+	"strings"
 
 	. "github.com/mae-global/rigo2/ri/core"
 )
@@ -886,7 +888,14 @@ func (ri *Ri) Quantize(typeof RtToken, one, min, max RtInt, dither RtFloat) {
 }
 
 func (ri *Ri) ReadArchive(name RtToken, callback RtArchiveCallback, parameterlist ...RtPointer) {
-	ri.ctx.Handle(List("ReadArchive", []RtPointer{name, callback}, parameterlist))
+	
+	params := []RtPointer{name}
+
+	if callback != RtArchiveCallback("") && callback != RtArchiveCallback("-") {
+		params = append(params,callback)
+	}
+
+	ri.ctx.Handle(List("ReadArchive", params, parameterlist))
 }
 
 func (ri *Ri) ReadArchiveV(name RtToken, callback RtArchiveCallback, n RtInt, tokens []RtToken, values []RtPointer) {
@@ -1164,10 +1173,17 @@ func (utils *Utility) WaitCh() chan RtInt {
 	return ch
 }
 
+/* RIB parsing code */
+func (utils *Utility) RIBString(stream string) error {
+	return parse(strings.NewReader(stream),utils.ctx)
+}
 
-
+func (utils *Utility) RIB(reader io.Reader) error {
+	return parse(reader,utils.ctx)
+}
 
 
 func Wrap(ctx RtContextHandle) *RiContext {
 	return &RiContext{&Ri{ctx}, &Utility{ctx}}
 }
+

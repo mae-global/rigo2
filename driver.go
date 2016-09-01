@@ -8,7 +8,8 @@ import (
 	"github.com/mae-global/rigo2/drivers/RIB"
 	"github.com/mae-global/rigo2/drivers/Render"
 	"github.com/mae-global/rigo2/drivers/Catrib"
-	"github.com/mae-global/rigo2/drivers/Documentator"
+	"github.com/mae-global/rigo2/drivers/Documentor"
+	"github.com/mae-global/rigo2/drivers/Rigo"
 
 )
 
@@ -42,7 +43,8 @@ func init() {
 
 	dd["catrib"] = catribdriver.BuildDriver
 
-	dd["doc"] = documentatordriver.BuildDriver
+	dd["doc"] = documentordriver.BuildDriver
+	dd["rigo"] = rigodriver.BuildDriver
 	
 	internal.Drivers = dd
 }
