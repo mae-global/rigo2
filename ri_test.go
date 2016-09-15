@@ -57,6 +57,7 @@ func Test_Examples(t *testing.T) {
 		ri.End()
 	})
 
+
 	Convey("Simple Sphere Example", t, func() {
 
 		ri := New(nil)		
