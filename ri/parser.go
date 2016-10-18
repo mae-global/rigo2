@@ -126,8 +126,7 @@ func parse(reader io.Reader, writer RtContextHandle) error {
 					}
 
 					writer.HandleV(proto.Name, nargs, ntokens, nvalues)					
-				}
-		
+				}		
 
 				/* Reset ready for next function */
 				args = make([]RtPointer, 0)
