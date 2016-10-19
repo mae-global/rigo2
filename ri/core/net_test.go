@@ -34,8 +34,6 @@ func Test_Net(t *testing.T) {
 		So(err,ShouldBeNil)
 		So(data,ShouldNotBeNil)
 
-		fmt.Printf("length of encoded data is %dbytes\n",len(data))
-
 		name,list,err := Decode(data)
 		So(err,ShouldBeNil)
 		So(name,ShouldEqual,RtString("Foo"))
@@ -48,8 +46,6 @@ func Test_Net(t *testing.T) {
 		data,err := Encode(RtString("Projection"),[]RtPointer{RtToken("perspective"),RtToken("float fov"),RtFloat(30.0)})
 		So(err,ShouldBeNil)
 		So(data,ShouldNotBeNil)
-
-		fmt.Printf("length of encoded data is %dbytes\n",len(data))
 		
 		name,list,err := Decode(data)
 		So(err,ShouldBeNil)
@@ -69,8 +65,6 @@ func Test_Net(t *testing.T) {
 		So(err,ShouldBeNil)
 		So(data,ShouldNotBeNil)
 
-		fmt.Printf("length of encoded data is %dbytes\n",len(data))
-
 		name,list,err := Decode(data)
 		So(err,ShouldBeNil)
 		So(name,ShouldEqual,RtString("Attribute"))
@@ -81,5 +75,19 @@ func Test_Net(t *testing.T) {
 		So(list[2],RtShouldEqual,RtToken("float tint"))
 		So(list[3],RtShouldEqual,RtFloat(1.0))
 
+	})
+
+	Convey("Test Net using protobuffers -- color",t,func() {
+
+		data,err := Encode(RtString("Color"),[]RtPointer{RtColor{0.123456,0.234567,0.345678,1.0}})
+		So(err,ShouldBeNil)
+		So(data,ShouldNotBeNil)
+
+		name,list,err := Decode(data)
+		So(err,ShouldBeNil)
+		So(name,ShouldEqual,RtString("Color"))
+		So(len(list),ShouldEqual,1)
+
+		So(list[0],RtShouldEqual,RtColor{0.123456,0.234567,0.345678,1.0})
 	})
 }

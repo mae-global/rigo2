@@ -250,6 +250,18 @@ func Encode(name RtString,list []RtPointer) ([]byte, error) {
 /* Decode -- decode a command sequence from proto-buffers */
 func Decode(data []byte) (RtString,[]RtPointer,error) {
 
+	array := func(v *PBiValue) []RtFloat {
+		if len(v.FloatArray) == 0 {
+			return nil
+		}
+		out := make([]RtFloat,len(v.FloatArray))
+		for i := 0; i < len(v.FloatArray); i++ {
+			out[i] = RtFloat(v.FloatArray[i])
+		}
+		return out
+	}
+		
+
 	out := &PBi{}
 	if err := proto.Unmarshal(data,out); err != nil {
 		return "",nil,err
@@ -293,23 +305,18 @@ func Decode(data []byte) (RtString,[]RtPointer,error) {
 				list = append(list,RtIntArray(nav))
 			break
 			case PBt_FLOATARRAY:
-				nav := make([]RtFloat,len(value.FloatArray))
-				for i := 0; i < len(value.FloatArray); i++ {
-					nav[i] = RtFloat(value.FloatArray[i])
-				}
-				list = append(list,RtFloatArray(nav))
+				list = append(list,RtFloatArray(array(value)))
 			break
 			case PBt_BOOLEAN:
 				list = append(list,RtBoolean(value.Boolean))
 			break
 			case PBt_COLOR:
-
-			
-
+				list = append(list,RtColor(array(value)))
 			break
 			case PBt_POINT:
-
+				list = append(list,RtFloatArray(array(value)).ToPoint())
 			break
+			/*		
 			case PBt_COLORARRAY:
 
 			break
@@ -319,22 +326,31 @@ func Decode(data []byte) (RtString,[]RtPointer,error) {
 			case PBt_INTERVAL:
 
 			break
+			*/
 			case PBt_NORMAL:
-
+				list = append(list,RtFloatArray(array(value)).ToNormal())
 			break
 			case PBt_HPOINT:
+				list = append(list,RtFloatArray(array(value)).ToHpoint())
+
 			break
 			case PBt_MATRIX:
+				list = append(list,RtFloatArray(array(value)).ToMatrix())
 			break
 			case PBt_BASIS:
+				list = append(list,RtFloatArray(array(value)).ToBasis())
 			break
 			case PBt_BOUND:
+				list = append(list,RtFloatArray(array(value)).ToBound())
 			break
 			case PBt_LIGHTHANDLE:
+				list = append(list,RtLightHandle(value.String_))
 			break
 			case PBt_OBJECTHANDLE:
+				list = append(list,RtObjectHandle(value.String_))
 			break
 			case PBt_SHADERHANDLE:
+				list = append(list,RtShaderHandle(value.String_))
 			break
 
 			default:

@@ -165,6 +165,111 @@ func (s RtFloatArray) String() string {
 }
 func (s RtFloatArray) Type() string { return fmt.Sprintf("float[%d]", len(s)) }
 
+func (s RtFloatArray) ToPoint() RtPoint {
+
+	out := [3]RtFloat{0,0,0}
+	if len(s) == 0 {
+		return out
+	}	
+
+	sc := s[0]
+	
+	for i := 0; i < 3; i++ {
+		out[i] = sc
+		if i < len(s) {  
+			sc = s[i]		
+		}
+	}
+	return out
+}
+
+func (s RtFloatArray) ToNormal() RtNormal {
+
+	out := [3]RtFloat{0,0,0}
+	if len(s) == 0 {
+		return out
+	}
+
+	sc := s[0]
+	for i := 0; i < 3; i++ {
+		out[i] = sc
+		if i < len(s) {
+			sc = s[i]
+		}
+	}
+	return out
+}
+
+
+func (s RtFloatArray) ToHpoint() RtHpoint {
+
+	out := [4]RtFloat{0,0,0,0}
+	if len(s) == 0 {
+		return out
+	}
+	
+	sc := s[0]
+	for i := 0; i < 4; i++ {
+		out[i] = sc
+		if i < len(s) {
+			sc = s[i]
+		}
+	}
+	return out
+}
+
+func (s RtFloatArray) ToMatrix() RtMatrix {
+
+	out := [16]RtFloat{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	if len(s) == 0 {
+		return out
+	}
+
+	sc := s[0]
+	for i := 0; i < 16; i++ {
+		out[i] = sc
+		if i < len(s) {
+			sc = s[i]
+		}
+	}
+	return out
+}
+
+func (s RtFloatArray) ToBasis() RtBasis {
+
+	out := [16]RtFloat{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+	if len(s) == 0 {
+		return out
+	}
+
+	sc := s[0]
+	for i := 0; i < 16; i++ {
+		out[i] = sc
+		if i < len(s) {
+			sc = s[i]
+		}
+	}
+	return out
+}
+
+func (s RtFloatArray) ToBound() RtBound {
+
+	out := [6]RtFloat{0,0,0,0,0,0}
+	if len(s) == 0 {
+		return out
+	}
+
+	sc := s[0]
+	for i := 0; i < 6; i++ {
+		out[i] = sc
+		if i < len(s) {
+			sc = s[i]
+		}
+	}
+	return out
+}
+
+
 /* RtColor -- color */
 type RtColor []RtFloat /* 3 components is normal */
 func (s RtColor) String() string {
@@ -179,6 +284,7 @@ func (s RtPoint) String() string {
 	return Reduce(s[0]) + " " + Reduce(s[1]) + " " + Reduce(2)
 }
 func (s RtPoint) Type() string { return "point" }
+
 
 /* RtPointArray */
 type RtPointArray []RtPoint
