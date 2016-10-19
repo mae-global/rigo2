@@ -21,6 +21,21 @@ type RtError struct {
 	Msg      string
 }
 
+func ToType(t RtPointer) string {
+
+	foo := ""
+	for _,c := range t.Type() { 
+	
+		if c == '[' {
+			foo += "_array"
+			break
+		}
+		foo += string(c)
+	}
+	return foo
+}
+
+
 func (err *RtError) String() string {
 	return fmt.Sprintf("%05d, %d -- %s", err.Code, err.Severity, err.Msg)
 }

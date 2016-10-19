@@ -4,6 +4,7 @@ import (
 	"fmt"	
 	"time"
 	"io"
+	"os"
 	"strings"
 
 	. "github.com/mae-global/rigo2/ri/core"
@@ -1174,6 +1175,17 @@ func (utils *Utility) WaitCh() chan RtInt {
 }
 
 /* RIB parsing code */
+func (utils *Utility) RIBFile(name string) error {
+	f,err := os.Open(name)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return parse(f,utils.ctx)
+}
+
+
 func (utils *Utility) RIBString(stream string) error {
 	return parse(strings.NewReader(stream),utils.ctx)
 }
