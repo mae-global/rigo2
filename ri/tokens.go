@@ -66,6 +66,7 @@ const (
 	SimpleBound               = RtToken("SimpleBound")
 	DSOBound                  = RtToken("DSOBound")
 
+
 	NULL                               = RtToken("")
 	A                                  = RtToken("varying float a")
 	ABORT                              = RtToken("uniform int abort")

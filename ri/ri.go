@@ -55,7 +55,7 @@ func (ri *Ri) ArchiveRecord(typeof RtToken, format string, parameterlist ...inte
 	ri.ctx.Handle(List(name, []RtPointer{RtString(out)}, nil))
 }
 
-/* RiAreaLightSource */
+/* RiAreaLightSource -- deprecated as of 21.0 */
 func (ri *Ri) AreaLightSource(name RtToken, handle RtLightHandle, parameterlist ...RtPointer) RtLightHandle {
 
 	h, err := ri.ctx.GenHandle(string(handle), "light")
@@ -70,6 +70,7 @@ func (ri *Ri) AreaLightSource(name RtToken, handle RtLightHandle, parameterlist 
 	return RtLightHandle(h)
 }
 
+/* deprecated as of 21.0 */
 func (ri *Ri) AreaLightSourceV(name RtToken, handle RtLightHandle, n RtInt, tokens []RtToken, values []RtPointer) RtLightHandle {
 	return ri.AreaLightSource(name, handle, ListParams(tokens, values)...)
 }
@@ -354,12 +355,22 @@ func (ri *Ri) DiskV(height, radius, tmax RtFloat, n RtInt, tokens []RtToken, val
 	ri.Disk(height, radius, tmax, ListParams(tokens, values)...)
 }
 
+/* Deprecated as of 21.0 */
 func (ri *Ri) Displacement(name RtToken, parameterlist ...RtPointer) {
 	ri.ctx.Handle(List("Displacement", []RtPointer{name}, parameterlist))
 }
 
+/* Deprecated as of 21.0 */
 func (ri *Ri) DisplacementV(name RtToken, n RtInt, tokens []RtToken, values []RtPointer) {
 	ri.Displacement(name, ListParams(tokens, values)...)
+}
+
+func (ri *Ri) Displace(name,handle RtToken,parameterlist ...RtPointer) {
+	ri.ctx.Handle(List("Displace",[]RtPointer{name,handle},parameterlist))
+}
+
+func (ri *Ri) DisplaceV(name,handle RtToken,n RtInt,nms []RtToken,values []RtPointer) {
+	ri.Displace(name,handle,ListParams(nms,values)...)
 }
 
 func (ri *Ri) Display(name string, typeof, mode RtToken, parameterlist ...RtPointer) {
@@ -372,6 +383,14 @@ func (ri *Ri) DisplayChannel(channel RtToken, parameterlist ...RtPointer) {
 
 func (ri *Ri) DisplayChannelV(channel RtToken, n RtInt, tokens []RtToken, values []RtPointer) {
 	ri.DisplayChannel(channel, ListParams(tokens, values)...)
+}
+
+func (ri *Ri) DisplayFilter(name,handle RtToken, paramterlist ...RtPointer) {
+	ri.ctx.Handle(List("DisplayFilter",[]RtPointer{name,handle},paramterlist))
+}
+
+func (ri *Ri) DisplayFilterV(name,handle RtToken, n RtInt,nms []RtToken,vals []RtPointer) {
+	ri.DisplayFilter(name,handle,ListParams(nms,vals)...)
 }
 
 func (ri *Ri) EditAttributeBegin(name RtToken) {
@@ -536,10 +555,12 @@ func (ri *Ri) Illuminate(light RtLightHandle, onoff RtBoolean) {
 	ri.ctx.Handle(List("Illuminate", []RtPointer{light, onoff}, nil))
 }
 
+/* Deprecated as of 21.0 */
 func (ri *Ri) Imager(name RtToken, parameterlist ...RtPointer) {
 	ri.ctx.Handle(List("Imager", []RtPointer{name}, parameterlist))
 }
 
+/* Deprecated as of 21.0 */
 func (ri *Ri) ImagerV(name RtToken, n RtInt, tokens []RtToken, values []RtPointer) {
 	ri.Imager(name, ListParams(tokens, values)...)
 }
@@ -583,6 +604,7 @@ func (ri *Ri) LightSource(name RtToken, handle RtLightHandle, parameterlist ...R
 	return RtLightHandle(h)
 }
 
+/* deprecated as of 21.0 */
 func (ri *Ri) LightSourceV(name RtToken, handle RtLightHandle, n RtInt, tokens []RtToken, values []RtPointer) RtLightHandle {
 	return ri.LightSource(name, handle, ListParams(tokens, values)...)
 }
@@ -931,6 +953,14 @@ func (ri *Ri) Rotate(angle, dx, dy, dz RtFloat) {
 	ri.ctx.Handle(List("Rotate", []RtPointer{angle, dx, dy, dz}, nil))
 }
 
+func (ri *Ri) SampleFilter(name, handle RtToken, parameterlist ...RtPointer) {
+	ri.ctx.Handle(List("SampleFilter", []RtPointer{name,handle},parameterlist))
+}
+
+func (ri *Ri) SampleFilterV(name,handle RtToken,n RtInt,nms []RtToken,values []RtPointer) {
+	ri.SampleFilter(name,handle,ListParams(nms,values)...)
+}
+
 func (ri *Ri) Scale(sx, sy, sz RtFloat) {
 	ri.ctx.Handle(List("Scale", []RtPointer{sx, sy, sz}, nil))
 }
@@ -955,6 +985,7 @@ func (ri *Ri) ShadingInterpolation(typeof RtToken) {
 	ri.ctx.Handle(List("ShadingInterpolation", []RtPointer{typeof}, nil))
 }
 
+/* deprecated as of 21.0 */
 func (ri *Ri) ShadingRate(size RtFloat) {
 	ri.ctx.Handle(List("ShadingRate", []RtPointer{size}, nil))
 }
