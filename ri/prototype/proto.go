@@ -8,7 +8,8 @@
 package prototype
 
 import (
-	. "../core"
+	
+	. "github.com/mae-global/rigo2/ri/core"
 )
 
 const (
