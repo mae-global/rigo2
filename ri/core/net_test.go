@@ -22,7 +22,7 @@ func RtShouldEqual(actual interface{}, expected ...interface{}) string {
 		return ""
 	}
 	
-	return fmt.Sprintf("Expected \"%s\", got \"%s\"",b.String(),a.String())
+	return fmt.Sprintf("Expected \"%s\"\nActual \"%s\"",b.String(),a.String())
 }
 
 
@@ -91,3 +91,5 @@ func Test_Net(t *testing.T) {
 		So(list[0],RtShouldEqual,RtColor{0.123456,0.234567,0.345678,1.0})
 	})
 }
+
+
