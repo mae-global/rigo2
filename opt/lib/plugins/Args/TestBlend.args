@@ -1,0 +1,38 @@
+<args format="1.0">
+    <shaderType>
+        <tag value="pattern"/>
+    </shaderType>
+    <param name="operation"  label="Operation" type="int" default="19"  widget="mapper"
+           connectable="False">
+        <hintdict name="options">
+            <string name="Color"         value="0"/>
+            <string name="Color Burn"    value="1"/>
+            <string name="Color Dodge"   value="2"/>
+            <string name="Darken"        value="3"/>
+            <string name="Darker Color"  value="4"/>
+            <string name="Difference"    value="5"/>
+            <string name="Dissolve"      value="6"/>
+            <string name="Divide"        value="7"/>
+            <string name="Exclusion"     value="8"/>
+            <string name="Hard Light"    value="9"/>
+            <string name="Hard Mix"      value="10"/>
+            <string name="Hue"           value="11"/>
+            <string name="Lighten"       value="12"/>
+            <string name="Lighter Color" value="13"/>
+            <string name="Linear Burn"   value="14"/>
+            <string name="Linear Dodge"  value="15"/>
+            <string name="Linear Light"  value="16"/>
+            <string name="Luminosity"    value="17"/>
+            <string name="Multiply"      value="18"/>
+            <string name="Normal"        value="19"/>
+            <string name="Overlay"       value="20"/>
+            <string name="Pin Light"     value="21"/>
+            <string name="Saturation"    value="22"/>
+            <string name="Screen"        value="23"/>
+            <string name="Soft Light"    value="24"/>
+            <string name="Subtract"      value="25"/>
+            <string name="Vivid Light"   value="26"/>
+        </hintdict>
+    </param>
+    <rfmdata nodeid="101" classification="test/pattern"/>
+</args>
