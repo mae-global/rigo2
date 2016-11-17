@@ -153,51 +153,13 @@ func PrintStats() {
 	fmt.Printf("\n")
 }
 
-func Bxdf(name string) (*Information, error) {
+func Load(name string) (*Information,error) {
 
-	/* FIXME: read the name if it describes an actual file then skip the RMANTREE */
-
-	filepath, err := tofilepath(name, "/lib/RIS/bxdf/Args/")
+	filepath, err := tofilepath(name,"/lib/plugins/Args/")
 	if err != nil {
-		return nil, err
+		return nil,err
 	}
-	return read(name, filepath)
-}
-
-func Integrator(name string) (*Information, error) {
-
-	filepath, err := tofilepath(name, "/lib/RIS/integrator/Args/")
-	if err != nil {
-		return nil, err
-	}
-	return read(name, filepath)
-}
-
-func LightFilter(name string) (*Information, error) {
-
-	filepath, err := tofilepath(name, "/lib/RIS/light/Args/")
-	if err != nil {
-		return nil, err
-	}
-	return read(name, filepath)
-}
-
-func Pattern(name string) (*Information, error) {
-
-	filepath, err := tofilepath(name, "/lib/RIS/pattern/Args/")
-	if err != nil {
-		return nil, err
-	}
-	return read(name, filepath)
-}
-
-func Projection(name string) (*Information, error) {
-
-	filepath, err := tofilepath(name, "/lib/RIS/projection/Args/")
-	if err != nil {
-		return nil, err
-	}
-	return read(name, filepath)
+	return read(name,filepath)
 }
 
 func Generic(name, filepath string) (*Information, error) {

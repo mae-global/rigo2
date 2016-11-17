@@ -29,7 +29,7 @@ func Test_RIS(t *testing.T) {
 
 		Convey("Load Bxdf", func() {
 
-			bxdf, err := Bxdf("PxrConstant")
+			bxdf, err := Load("PxrConstant")
 			So(err, ShouldBeNil)
 			So(bxdf, ShouldNotBeNil)
 
@@ -37,7 +37,7 @@ func Test_RIS(t *testing.T) {
 
 		Convey("Load Integrator", func() {
 
-			integrator, err := Integrator("PxrDefault")
+			integrator, err := Load("PxrDefault")
 			So(err, ShouldBeNil)
 			So(integrator, ShouldNotBeNil)
 
@@ -45,7 +45,7 @@ func Test_RIS(t *testing.T) {
 
 		Convey("Load LightFilter", func() {
 
-			light, err := LightFilter("PxrGobo")
+			light, err := Load("PxrGoboLightFilter")
 			So(err, ShouldBeNil)
 			So(light, ShouldNotBeNil)
 
@@ -53,7 +53,7 @@ func Test_RIS(t *testing.T) {
 
 		Convey("Load Projection", func() {
 
-			projection, err := Projection("PxrCamera")
+			projection, err := Load("PxrCamera")
 			So(err, ShouldBeNil)
 			So(projection, ShouldNotBeNil)
 
@@ -61,7 +61,7 @@ func Test_RIS(t *testing.T) {
 
 		Convey("Load Pattern", func() {
 
-			pattern, err := Pattern("PxrBlend")
+			pattern, err := Load("PxrBlend")
 			So(err, ShouldBeNil)
 			So(pattern, ShouldNotBeNil)
 		})

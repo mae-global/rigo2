@@ -88,6 +88,26 @@ func Str2Normal(str string) RtNormal {
 	return out
 }
 
+func Str2Point(str string) RtPoint {
+
+	parts := strings.Split(strings.TrimSpace(str)," ")
+	
+	if len(parts) != 3 {
+		return RtPoint{0,0,0}
+	}
+	out := RtPoint{0,0,0}
+
+	for i,part := range parts {
+		if f,err := strconv.ParseFloat(part,64); err != nil {
+			continue
+		} else {
+			out[i] = RtFloat(f)
+		}
+	}
+
+	return out
+}
+
 func Str2Vector(str string) RtVector {
 
 	parts := strings.Split(strings.TrimSpace(str), " ")
@@ -239,6 +259,21 @@ func ParseArgsParam(param *Param) (InfoParam, error) {
 		}
 		if len(param.Max) > 0 {
 			max = Str2Vector(param.Max)
+		}
+		break
+	case "point":
+		def = RtPoint{0,0,0}
+		min = RtPoint{0,0,0}
+		max = RtPoint{0,0,0}
+
+		if len(param.Default) > 0 {
+			def = Str2Point(param.Default)
+		}
+		if len(param.Min) > 0 {
+			min = Str2Point(param.Min)
+		}
+		if len(param.Max) > 0 {
+			max = Str2Point(param.Max)
 		}
 		break
 	case "string":
