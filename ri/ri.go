@@ -66,7 +66,7 @@ func (ri *Ri) AreaLightSource(name RtToken, handle RtLightHandle, parameterlist 
 		h = string(handle)
 	}
 
-	ri.ctx.Handle(AnnotatedList("AreaLightSource", []RtPointer{name, RtLightHandle(h)}, parameterlist,[]RtPointer{RtToken("lighthandle asset"),RtLightHandle(h)}))
+	ri.ctx.Handle(AnnotatedList("AreaLightSource", []RtPointer{name, RtLightHandle(h)}, parameterlist,[]RtPointer{RtToken("lighthandle asset"),RtLightHandle(h),RtToken("int deprecated"),RtInt(21)}))
 	return RtLightHandle(h)
 }
 
@@ -551,13 +551,15 @@ func (ri *Ri) IfEnd() {
 	ri.ctx.Handle(List("IfEnd", nil, nil))
 }
 
+/* RiIlluminate -- NOTE, use of RtToken rather than RtLightHandle */
 func (ri *Ri) Illuminate(light RtLightHandle, onoff RtBoolean) {
 	ri.ctx.Handle(List("Illuminate", []RtPointer{light, onoff}, nil))
 }
 
 /* Deprecated as of 21.0 */
 func (ri *Ri) Imager(name RtToken, parameterlist ...RtPointer) {
-	ri.ctx.Handle(List("Imager", []RtPointer{name}, parameterlist))
+	
+	ri.ctx.Handle(AnnotatedList("Imager",[]RtPointer{name},parameterlist,[]RtPointer{RtToken("int depreciated"),RtInt(21)}))
 }
 
 /* Deprecated as of 21.0 */
@@ -987,7 +989,7 @@ func (ri *Ri) ShadingInterpolation(typeof RtToken) {
 
 /* deprecated as of 21.0 */
 func (ri *Ri) ShadingRate(size RtFloat) {
-	ri.ctx.Handle(List("ShadingRate", []RtPointer{size}, nil))
+	ri.ctx.Handle(AnnotatedList("ShadingRate", []RtPointer{size}, nil,[]RtPointer{RtToken("int deprecated"),RtInt(21)}))
 }
 
 func (ri *Ri) Shutter(opentime, closetime RtFloat) {

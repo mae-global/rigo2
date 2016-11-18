@@ -42,6 +42,7 @@ func Test_RIBOptions(t *testing.T) {
 
 		/* turn debugging on */
 		ri.Option("driver",RtToken("debug"),RtBoolean(true))
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("out/rib_options.rib.gz")
 
@@ -109,6 +110,7 @@ func Test_Context(t *testing.T) {
 		So(ri, ShouldNotBeNil)
 
 		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("tmp/context.rib")
 
@@ -237,6 +239,7 @@ func Test_Context(t *testing.T) {
 		last := ri.Utils.GetLastRIB
 
 		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("catrib")
 		ri.Display("render_sphere.tiff", "multires", "rgba")
@@ -268,6 +271,7 @@ func Test_Context(t *testing.T) {
 		ri := Wrap(NewContext(nil))
 		
 		ri.Option("rib",RtToken("asciistyle"),RtString("wide")) /* default is "indent,wide", so for ease error checking we drop the indent */
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("catrib -o tmp/catribtofile.rib")
 		ri.Display("render_sphere.tiff", "multires", "rgba")
@@ -287,6 +291,8 @@ func Test_Context(t *testing.T) {
 			t.Skip()
 		}
 		ri := Wrap(NewContext(&Configuration{}))
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
+
 		ri.Begin("render -progress")
 		ri.Display("tmp/redsphere.tiff", "file", "rgba")
 		ri.Format(320, 240, 1)
@@ -337,6 +343,8 @@ func Test_Context(t *testing.T) {
 
 		ri := Wrap(NewContext(&Configuration{}))
 
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
+
 		ri.Begin("render -capture out/rendertofile.rib")
 		ri.Display("tmp/redsphere.tiff", "file", "rgba")
 		ri.Format(320, 240, 1)
@@ -357,6 +365,8 @@ func Test_Context(t *testing.T) {
 
 		ctx := NewContext(nil)
 		ri := Wrap(ctx)
+
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("render -progress")
 		ri.Display("tmp/lredsphere.tiff", "file", "rgba")

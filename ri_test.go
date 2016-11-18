@@ -9,11 +9,14 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+/* These simple tests are used as default examples */
+
 func Test_Examples(t *testing.T) {
 
 	Convey("Unit Cube Example", t, func() {
 
 		ri := New(nil)
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("out/examples/unitcube.rib")
 		ri.AttributeBegin()
@@ -61,6 +64,7 @@ func Test_Examples(t *testing.T) {
 	Convey("Simple Sphere Example", t, func() {
 
 		ri := New(nil)		
+		ri.Option("driver",RtToken("strict"),RtBoolean(true))
 
 		ri.Begin("out/examples/simplesphere.rib")
 		ri.Display("simplesphere.tiff", "file", "rgba")
@@ -68,7 +72,7 @@ func Test_Examples(t *testing.T) {
 		ri.Projection(PERSPECTIVE, RtToken("float fov"), RtFloat(30))
 		ri.Translate(0, 0, 6)
 		ri.WorldBegin()
-		ri.LightSource("ambientlight", "-", RtToken("float intensity"), RtFloat(0.5))
+		ri.Light("PxrEnvDayLight", "-", RtToken("float intensity"), RtFloat(0.5))
 		ri.Color(RtColor{1, 0, 0})
 		ri.Sphere(1, -1, 1, 360)
 		ri.WorldEnd()

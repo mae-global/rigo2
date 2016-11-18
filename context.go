@@ -19,6 +19,9 @@ import (
 	"github.com/mae-global/rigo2/rie"
 )
 
+const RenderManProVersion = RtInt(21)
+
+
 /* TODO: 
  * 
  * + add gzip support to File and Stdout drivers
@@ -396,6 +399,9 @@ func NewContext(config *Configuration) *Context {
 	driver[RtToken("strict")] = RtBoolean(false)
 	driver[RtToken("fragment")] = RtBoolean(false)
 
+	if debug := os.Getenv("RIDEBUG"); debug != "" {
+		driver[RtToken("debug")] = RtBoolean(true)
+	}
 
 	return ctx
 }
@@ -646,6 +652,22 @@ func (ctx *Context) Handle(list []RtPointer) {
 					break
 					case "asset":
 						ctx.statistics.AddAsset(token,value)
+					break
+					case "depreciated","deprecated":
+						/* check for depreciated function calls in strict mode, generating an error */
+						if strict.(RtBoolean) == true {
+							if value.Type() == "int" {
+							
+								if version,ok := value.(RtInt); ok {
+									if version <= RenderManProVersion {
+									/* then set error */
+										if err := ctx.HandleError(Errorf(rie.BadToken,rie.Error,"%s is depreciated as of version %d",name,version)); err != nil {
+											log.Fatal(err)
+										}	
+									}
+								}
+							}
+						}
 					break
 				}
 			}
