@@ -49,7 +49,15 @@ func Test_RMA(t *testing.T) {
 
 		node := lib.Find("yellow matte plastic")
 		So(node,ShouldNotBeNil)
+		So(node.Dir,ShouldBeFalse)
 
 		node.PrettyPrint()
+
+		node = lib.Find("Materials")
+		So(node,ShouldNotBeNil)
+		So(node.Dir,ShouldBeTrue)
+
+		node.PrettyPrint()
+
 	})
 }

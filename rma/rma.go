@@ -44,6 +44,7 @@ type LibraryNode struct {
 	Nodes []*LibraryNode
 }
 
+
 func depth(current int,root *LibraryNode) int {
 	if root == nil {
 		return current
@@ -65,6 +66,14 @@ func depth(current int,root *LibraryNode) int {
 func (node *LibraryNode) Depth() int {
 	return depth(0,node)
 }
+
+func (node *LibraryNode) Path() string {
+	if node.Dir {
+		return node.Filepath
+	} 
+
+	return strings.TrimSuffix(node.Filepath,"/asset.json")
+}
 	
 	
 func (node *LibraryNode) PrettyPrint() {
@@ -84,8 +93,32 @@ func (lib *RenderManAssetLibrary) Depth() int {
 	return depth(0,lib.Root)
 }
 
+func find(root *LibraryNode,name string) (*LibraryNode,bool) {
+	if root == nil {
+		return nil,false
+	}
+
+	if root.Name == name {
+		return root,true
+	}
+
+	for _,n := range root.Nodes {
+		if node,exists := find(n,name); exists {
+			return node,true
+		}
+	}
+
+	return nil,false
+}
+
+
 func (lib *RenderManAssetLibrary) Find(name string) *LibraryNode {
 	if node,exists := lib.names[name]; exists {
+		return node
+	}
+
+	/* do long check */
+	if node,exists := find(lib.Root,name); exists {
 		return node
 	}
 
