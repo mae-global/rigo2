@@ -357,7 +357,7 @@ func (ri *Ri) DiskV(height, radius, tmax RtFloat, n RtInt, tokens []RtToken, val
 
 /* Deprecated as of 21.0 */
 func (ri *Ri) Displacement(name RtToken, parameterlist ...RtPointer) {
-	ri.ctx.Handle(List("Displacement", []RtPointer{name}, parameterlist))
+	ri.ctx.Handle(AnnotatedList("Displacement", []RtPointer{name}, parameterlist,[]RtPointer{RtToken("int deprecated"),RtInt(21)}))
 }
 
 /* Deprecated as of 21.0 */
@@ -559,7 +559,7 @@ func (ri *Ri) Illuminate(light RtLightHandle, onoff RtBoolean) {
 /* Deprecated as of 21.0 */
 func (ri *Ri) Imager(name RtToken, parameterlist ...RtPointer) {
 	
-	ri.ctx.Handle(AnnotatedList("Imager",[]RtPointer{name},parameterlist,[]RtPointer{RtToken("int depreciated"),RtInt(21)}))
+	ri.ctx.Handle(AnnotatedList("Imager",[]RtPointer{name},parameterlist,[]RtPointer{RtToken("int deprecated"),RtInt(21)}))
 }
 
 /* Deprecated as of 21.0 */

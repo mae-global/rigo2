@@ -204,18 +204,25 @@ func Test_Context(t *testing.T) {
 		ri := Wrap(ctx)
 		So(ri, ShouldNotBeNil)
 
-		/* TODO: clean up here */
+		os.Remove("./out.rib")
 
 		ri.Begin(NULL)
 		ri.End()
 
-		/* TODO: check file has been created, then clean up */
+		info,err := os.Stat("./out.rib")
+		So(err,ShouldBeNil)
+		So(info.IsDir(),ShouldBeFalse)
+
+		os.Remove("./out.rib")
 
 		ri.Begin("-")
 		ri.End()
 
-		/* TODO: check file has been created, then clean up */
+		info,err = os.Stat("./out.rib")
+		So(err,ShouldBeNil)
+		So(info.IsDir(),ShouldBeFalse)
 
+		os.Remove("./out.rib")
 	})
 
 	Convey("stdout", t, func() {
@@ -252,8 +259,8 @@ func Test_Context(t *testing.T) {
 		So(last(), ShouldEqual, `Translate 0 0 6`)
 		ri.WorldBegin()
 		So(last(), ShouldEqual, `WorldBegin`)
-		ri.LightSource("ambientlight", "ambient", RtToken("float intensity"), RtFloat(0.5))
-		So(last(), ShouldEqual, `LightSource "ambientlight" "ambient" "float intensity" [.5]`)
+		ri.Light("PxrEnvDayLight", "ambient", RtToken("float intensity"), RtFloat(0.5))
+		So(last(), ShouldEqual, `Light "PxrEnvDayLight" "ambient" "float intensity" [.5]`)
 		ri.Color(RtColor{1, 0, 0})
 		So(last(), ShouldEqual, `Color [1 0 0]`)
 		ri.Sphere(1, -1, 1, 360)
@@ -279,7 +286,7 @@ func Test_Context(t *testing.T) {
 		ri.Projection("perspective", RtToken("float fov"), RtFloat(30))
 		ri.Translate(0, 0, 6)
 		ri.WorldBegin()
-		ri.LightSource("ambientlight", "-", RtToken("float intensity"), RtFloat(0.5))
+		ri.Light("PxrEnvDayLight", "-", RtToken("float intensity"), RtFloat(0.5))
 		ri.Color(RtColor{1, 0, 0})
 		ri.Sphere(1, -1, 1, 360)
 		ri.WorldEnd()
@@ -299,7 +306,7 @@ func Test_Context(t *testing.T) {
 		ri.Projection("perspective", RtToken("float fov"), RtFloat(30))
 		ri.Translate(0, 0, 6)
 		ri.WorldBegin()
-		ri.LightSource("ambientlight", "-", RtToken("float intensity"), RtFloat(0.5))
+		ri.Light("PxrEnvDayLight", "-", RtToken("float intensity"), RtFloat(0.5))
 		ri.Color(RtColor{1, 0, 0})
 		ri.Sphere(1, -1, 1, 360)
 		ri.WorldEnd()
@@ -318,7 +325,7 @@ func Test_Context(t *testing.T) {
 		ri.Projection("perspective", RtToken("float fov"), RtFloat(30))
 		ri.Translate(0, 0, 6)
 		ri.WorldBegin()
-		ri.LightSource("ambientlight", "-", RtToken("float intensity"), RtFloat(1.0))
+		ri.Light("PxrEnvDayLight", "-", RtToken("float intensity"), RtFloat(1.0))
 		ri.Color(RtColor{1, .2, .2})
 		ri.Sphere(1, -1, 1, 360)
 		ri.WorldEnd()
@@ -351,7 +358,7 @@ func Test_Context(t *testing.T) {
 		ri.Projection("perspective", RtToken("float fov"), RtFloat(30))
 		ri.Translate(0, 0, 6)
 		ri.WorldBegin()
-		ri.LightSource("ambientlight", "-", RtToken("float intensity"), RtFloat(0.5))
+		ri.Light("PxrEnvDayLight", "-", RtToken("float intensity"), RtFloat(0.5))
 		ri.Color(RtColor{1, 0, 0})
 		ri.Sphere(1, -1, 1, 360)
 		ri.WorldEnd()
@@ -395,7 +402,7 @@ func Test_Context(t *testing.T) {
 				ri.AttributeBegin()
 					ri.Translate(5, 5, 5)
 
-						light := ri.AreaLightSource("PxrStdEnvDayLight", RtLightHandle("-"), RtToken("float importance"), RtFloat(2),
+						light := ri.Light("PxrEnvDayLight", RtLightHandle("-"), RtToken("float importance"), RtFloat(2),
 							RtToken("float exposure"), RtFloat(1), RtToken("vector directionVector"),
 							RtVector{1, 1, 1}, RtToken("color specAmount"), RtColor{.5, .5, .5},
 							RtToken("float haziness"), RtFloat(1.7), RtToken("float enableShadows"),

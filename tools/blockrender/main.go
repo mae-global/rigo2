@@ -32,7 +32,7 @@ func main() {
 		ri.Projection(PERSPECTIVE, RtToken("float fov"), RtFloat(30))
 		ri.Translate(0, 0, 6)
 		ri.WorldBegin()
-			ri.LightSource("ambientlight", "-", RtToken("float intensity"), RtFloat(0.5))
+			ri.Light("PxrEnvDayLight", "-", RtToken("float intensity"), RtFloat(0.5))
 			ri.Color(RtColor{1, 0, 0})
 			ri.Sphere(1, -1, 1, 360)
 		ri.WorldEnd()
@@ -72,7 +72,7 @@ func main() {
 					ri.Attribute("identifier",RtToken("name"),RtString("light"))
 					ri.Translate(5, 5, 5)
 
-						light := ri.AreaLightSource("PxrStdEnvDayLight", RtLightHandle("-"), RtToken("float importance"), RtFloat(2),
+						light := ri.Light("PxrEnvDayLight", RtLightHandle("-"), RtToken("float importance"), RtFloat(2),
 							RtToken("float exposure"), RtFloat(1), RtToken("vector directionVector"),
 							RtVector{1, 1, 1}, RtToken("color specAmount"), RtColor{.5, .5, .5},
 							RtToken("float haziness"), RtFloat(1.7), RtToken("float enableShadows"),
