@@ -69,7 +69,8 @@ func Test_RigoDriver(t *testing.T) {
 		/* TODO: check for outputted file */
 	})
 }
-	
+
+
 
 
 

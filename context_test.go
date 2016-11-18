@@ -378,13 +378,10 @@ func Test_Context(t *testing.T) {
 		ri.Begin("render -progress")
 		ri.Display("tmp/lredsphere.tiff", "file", "rgba")
 		ri.Format(320, 240, 1)
-		ri.ShadingRate(100)
 		ri.ShadingInterpolation("smooth")
 		ri.PixelVariance(0.001)
 		ri.PixelFilter(GaussianFilter, RtFloat(3), RtFloat(3))
 		ri.Projection("perspective", RtToken("float fov"), RtFloat(30))
-
-		ri.Imager("background", RtToken("color color"), RtColor{1, 1, 1}, RtToken("float aplha"), RtFloat(1))
 
 		ri.Hider("raytrace", RtToken("int maxsamples"), RtInt(64), RtToken("int minsamples"), RtInt(16),
 			RtToken("int incremental"), RtInt(12), RtToken("float[4] aperture"), RtFloatArray{0, 0, 0, 0},
