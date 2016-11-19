@@ -224,7 +224,7 @@ func LoadLibrary() (*RenderManAssetLibrary,error) {
 
 	files := make([]string,0)
 
-	root := &LibraryNode{Dir:true}
+	root := &LibraryNode{Dir:true,Filepath:filep}
 	root.Nodes = make([]*LibraryNode,0)
 
 	nodes := make(map[string]*LibraryNode,0)
@@ -238,56 +238,61 @@ func LoadLibrary() (*RenderManAssetLibrary,error) {
 				return err
 			}
 
+
 			if !info.IsDir() {
 	
-				if info.Name() == "asset.json" {
-	
-					f := strings.TrimPrefix(path,filep)
-					files = append(files,f)
-
-					/* strip the asset.json file, then break into path components */
-
-					parts := strings.Split(f,"/")
-
-					c := root
-					
-					for _,p := range parts {
-						if len(p) > 0 && p != "asset.json" { 
-														
-							found := false
-							/* check for first part in the root nodes */
-							for _,n := range c.Nodes {
-								if n.Name == p {
-									found = true
-									c = n
-								}
-							}
-
-							if !found {
-
-								if filepath.Ext(p) == ".rma" {
-								
-									count ++
-											
-									name := strings.Replace(strings.TrimSuffix(p,".rma"),"_"," ",-1)
-
-									n := &LibraryNode{Dir:false,Name:name,Filepath:path,Rank:c.Rank + 1} 
-									c.Nodes = append(c.Nodes,n)
-									c = n	
-
-									nodes[name] = n
-			
-								} else {
-
-									n := &LibraryNode{Dir:true,Name:p,Rank:c.Rank + 1}
-									n.Nodes = make([]*LibraryNode,0)
-									c.Nodes = append(c.Nodes,n)
-									c = n
-								}
-							}							
-						}
-					}				
+				if info.Name() != "asset.json" {
+					return nil
 				}
+
+				f := strings.TrimPrefix(path,filep)
+				files = append(files,f)
+
+				/* strip the asset.json file, then break into path components */
+
+				parts := strings.Split(f,"/")
+
+				c := root
+					
+				for _,p := range parts {
+					if len(p) == 0 || p == "asset.json" {
+						continue
+					}
+
+														
+					found := false
+					/* check for first part in the root nodes */
+					for _,n := range c.Nodes {
+						if n.Name == p {
+							found = true
+							c = n
+						}
+					}
+
+					if !found {
+						if filepath.Ext(p) == ".rma" {
+							
+							count ++
+										
+							name := strings.Replace(strings.TrimSuffix(p,".rma"),"_"," ",-1)
+
+							n := &LibraryNode{Dir:false,Name:name,Filepath:path,Rank:c.Rank + 1} 
+							c.Nodes = append(c.Nodes,n)
+							c = n	
+
+							nodes[name] = n
+			
+						} else {
+
+							n := &LibraryNode{Dir:true,Filepath:path,Name:p,Rank:c.Rank + 1}
+							n.Nodes = make([]*LibraryNode,0)
+							c.Nodes = append(c.Nodes,n)
+							c = n
+						}													
+					} /* !found */
+
+				} /* for p */				
+				 
 			} 
 	
 			return nil
